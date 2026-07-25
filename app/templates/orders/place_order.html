@@ -1,0 +1,207 @@
+
+{% extends "base.html" %}
+{% block title %}Place Order{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container" style="max-width:900px;">
+    <div class="breadcrumb"><a href="{{ url_for('main.index') }}">Home</a> › <a href="{{ url_for('main.browse') }}">Browse</a> › <a href="{{ url_for('main.gig_detail',gig_id=gig.gig_id) }}">{{ gig.title[:30] }}</a> › Order</div>
+    <h2 class="mt2 mb3">Place Your Order</h2>
+    <div class="g2" style="align-items:start;">
+      <!-- Gig Summary -->
+      <div class="card">
+        <div class="card-header"><strong>📦 Order Summary</strong></div>
+        <div class="card-body">
+          <div style="font-size:1.1rem;font-weight:700;margin-bottom:.75rem;">{{ gig.title }}</div>
+          <div style="font-size:.88rem;color:var(--gray-600);margin-bottom:1rem;">By {{ gig.seller_name }} · {{ gig.university or '' }}</div>
+          <div style="display:flex;flex-direction:column;gap:.6rem;font-size:.9rem;">
+            <div class="fb"><span class="text-muted">Price</span><span class="text-teal fw7">🪙 {{ gig.price|int }} coins</span></div>
+            <div class="fb"><span class="text-muted">Delivery</span><span>{{ gig.delivery_days }} day{{ 's' if gig.delivery_days > 1 else '' }}</span></div>
+            <div class="fb"><span class="text-muted">Revisions</span><span>{{ gig.revisions }}</span></div>
+            {% if gig.allow_swap %}<div class="fb"><span class="text-muted">Swap</span><span class="badge badge-amber">Available</span></div>{% endif %}
+          </div>
+          <div class="divider"></div>
+          <div class="fb"><span class="fw7">Your Balance</span><span class="text-teal fw7">🪙 {{ balance|int }} coins</span></div>
+          {% if balance < gig.price %}
+          <div class="alert alert-warning mt2">⚠️ Insufficient coins. You need 🪙 {{ (gig.price|float - balance|float) | int }} more coins.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Order Form -->
+      <div class="card">
+        <div class="card-header"><strong>📝 Order Details</strong></div>
+        <div class="card-body">
+          <form method="POST">
+            <div class="form-group">
+              <label class="form-label">Payment Method<span class="req">*</span></label>
+              <div style="display:flex;flex-direction:column;gap:.75rem;">
+                <label style="display:flex;align-items:center;gap:12px;padding:12px;border:2px solid var(--teal);border-radius:var(--radius-sm);cursor:pointer;">
+                  <input type="radio" name="payment_method" value="coins" checked/>
+                  <div>
+                    <div style="font-weight:700;">🪙 Campus Coins</div>
+                    <div style="font-size:.8rem;color:var(--gray-500);">Pay {{ gig.price|int }} coins from your wallet</div>
+                  </div>
+                </label>
+                {% if gig.allow_swap %}
+                <label style="display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;">
+                  <input type="radio" name="payment_method" value="swap"/>
+                  <div>
+                    <div style="font-weight:700;">🔄 Skill Swap</div>
+                    <div style="font-size:.8rem;color:var(--gray-500);">Exchange skills — no coins needed</div>
+                  </div>
+                </label>
+                {% endif %}
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Method<span class="req">*</span></label>
+              <div style="display:flex;flex-direction:column;gap:.75rem;">
+
+                <!-- Campus Coins -->
+                <label id="opt-coins" style="display:flex;align-items:center;gap:12px;
+                      padding:12px;border:2px solid var(--teal);border-radius:var(--radius-sm);
+                      cursor:pointer;transition:var(--transition);"
+                      onclick="selectPayment('coins')">
+                  <input type="radio" name="payment_method" value="coins" checked
+                        style="width:18px;height:18px;accent-color:var(--teal);"/>
+                  <div>
+                    <div style="font-weight:700;">🪙 Campus Coins</div>
+                    <div style="font-size:.82rem;color:var(--gray-500);">
+                      Pay {{ gig.price|int }} coins from your wallet
+                      (Balance: {{ balance|int }} coins)
+                    </div>
+                  </div>
+                  {% if balance < gig.price %}
+                  <span class="badge badge-red" style="margin-left:auto;">
+                    Insufficient
+                  </span>
+                  {% endif %}
+                </label>
+
+                <!-- EasyPaisa -->
+                <label id="opt-easypaisa" style="display:flex;align-items:center;gap:12px;
+                      padding:12px;border:1.5px solid var(--border);
+                      border-radius:var(--radius-sm);cursor:pointer;
+                      transition:var(--transition);"
+                      onclick="selectPayment('easypaisa')">
+                  <input type="radio" name="payment_method" value="easypaisa"
+                        style="width:18px;height:18px;accent-color:#1b5e20;"/>
+                  <div>
+                    <div style="font-weight:700;">📱 EasyPaisa</div>
+                    <div style="font-size:.82rem;color:var(--gray-500);">
+                      Pay via EasyPaisa mobile wallet
+                    </div>
+                  </div>
+                  <span class="badge" style="margin-left:auto;background:#e8f5e9;
+                        color:#1b5e20;">Pakistan</span>
+                </label>
+
+                <!-- EasyPaisa phone input -->
+                <div id="easypaisa-input" style="display:none;margin-top:-8px;
+                    padding:12px;background:var(--gray-50);
+                    border-radius:var(--radius-sm);">
+                  <label class="form-label">EasyPaisa Phone Number</label>
+                  <input type="tel" name="easypaisa_number" class="form-control"
+                        placeholder="03XX-XXXXXXX" maxlength="11"
+                        pattern="03[0-9]{9}"/>
+                  <div class="form-hint">
+                    Enter the EasyPaisa number to pay from
+                  </div>
+                </div>
+
+                <!-- JazzCash -->
+                <label id="opt-jazzcash" style="display:flex;align-items:center;gap:12px;
+                      padding:12px;border:1.5px solid var(--border);
+                      border-radius:var(--radius-sm);cursor:pointer;
+                      transition:var(--transition);"
+                      onclick="selectPayment('jazzcash')">
+                  <input type="radio" name="payment_method" value="jazzcash"
+                        style="width:18px;height:18px;accent-color:#e65100;"/>
+                  <div>
+                    <div style="font-weight:700;">📱 JazzCash</div>
+                    <div style="font-size:.82rem;color:var(--gray-500);">
+                      Pay via JazzCash mobile wallet
+                    </div>
+                  </div>
+                  <span class="badge" style="margin-left:auto;background:#fff3e0;
+                        color:#e65100;">Pakistan</span>
+                </label>
+
+                <!-- JazzCash phone input -->
+                <div id="jazzcash-input" style="display:none;margin-top:-8px;
+                    padding:12px;background:var(--gray-50);
+                    border-radius:var(--radius-sm);">
+                  <label class="form-label">JazzCash Phone Number</label>
+                  <input type="tel" name="jazzcash_number" class="form-control"
+                        placeholder="03XX-XXXXXXX" maxlength="11"
+                        pattern="03[0-9]{9}"/>
+                  <div class="form-hint">
+                    Enter the JazzCash number to pay from
+                  </div>
+                </div>
+
+                <!-- Skill Swap -->
+                {% if gig.allow_swap %}
+                <label id="opt-swap" style="display:flex;align-items:center;gap:12px;
+                      padding:12px;border:1.5px solid var(--border);
+                      border-radius:var(--radius-sm);cursor:pointer;
+                      transition:var(--transition);"
+                      onclick="selectPayment('swap')">
+                  <input type="radio" name="payment_method" value="swap"
+                        style="width:18px;height:18px;accent-color:var(--amber);"/>
+                  <div>
+                    <div style="font-weight:700;">🔄 Skill Swap</div>
+                    <div style="font-size:.82rem;color:var(--gray-500);">
+                      Exchange skills — no coins or money needed
+                    </div>
+                  </div>
+                  <span class="badge badge-amber" style="margin-left:auto;">Free</span>
+                </label>
+                {% endif %}
+
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Requirements</label>
+              <textarea name="requirements" class="form-control" rows="4"
+                placeholder="Describe what you need. Be specific — what outcome, style, deadline, any files to share…" maxlength="1000"></textarea>
+              <div class="form-hint">More details = better results</div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg"
+              {% if balance < gig.price %}id="order-btn"{% endif %}>
+              Confirm Order →
+            </button>
+            <a href="{{ url_for('main.gig_detail',gig_id=gig.gig_id) }}" class="btn btn-ghost btn-block mt1">← Back to Gig</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% block scripts %}
+<script>
+function selectPayment(method) {
+    // Reset all borders
+    ['coins','easypaisa','jazzcash','swap'].forEach(m => {
+        const el = document.getElementById('opt-' + m);
+        if (el) el.style.borderColor = 'var(--border)';
+        el && (el.style.borderWidth = '1.5px');
+    });
+
+    // Highlight selected
+    const selected = document.getElementById('opt-' + method);
+    if (selected) {
+        selected.style.borderColor = 'var(--teal)';
+        selected.style.borderWidth = '2px';
+    }
+
+    // Show/hide phone inputs
+    document.getElementById('easypaisa-input').style.display =
+        method === 'easypaisa' ? 'block' : 'none';
+    document.getElementById('jazzcash-input').style.display =
+        method === 'jazzcash' ? 'block' : 'none';
+}
+</script>
+{% endblock %}
+{% endblock %}
+

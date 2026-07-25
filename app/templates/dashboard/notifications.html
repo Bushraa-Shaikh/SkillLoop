@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container" style="max-width:700px;">
+    <h2 class="mb3">🔔 Notifications</h2>
+    {% if notifications %}
+    <div style="display:flex;flex-direction:column;gap:.5rem;">
+      {% for n in notifications %}
+      <div class="card" style="{% if not n.is_read %}border-left:3px solid var(--teal);{% endif %}">
+        <div class="card-body" style="padding:1rem 1.25rem;">
+          <div style="display:flex;gap:1rem;align-items:flex-start;">
+            <div style="font-size:1.4rem;flex-shrink:0;">
+              {% if n.type=='order_placed' %}📦
+              {% elif n.type=='message_sent' %}💬
+              {% elif n.type=='order_completed' %}✅
+              {% elif n.type=='bid_placed' %}💼
+              {% else %}🔔{% endif %}
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:{% if not n.is_read %}700{% else %}500{% endif %};font-size:.9rem;">{{ n.title }}</div>
+              {% if n.body %}<div style="font-size:.82rem;color:var(--gray-500);margin-top:3px;">{{ n.body }}</div>{% endif %}
+              <div style="font-size:.75rem;color:var(--gray-400);margin-top:4px;">
+                {{ n.created_at.strftime('%b %d, %Y %H:%M') if n.created_at else '' }}
+              </div>
+            </div>
+            {% if n.link %}<a href="{{ n.link }}" class="btn btn-ghost btn-sm">View →</a>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">🔔</div>
+      <h3>No notifications</h3>
+      <p>You're all caught up!</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

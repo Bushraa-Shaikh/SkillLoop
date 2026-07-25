@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }}{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container" style="max-width:900px;">
+    <div class="breadcrumb">
+      <a href="{{ url_for('projects.list_projects') }}">Projects</a> › {{ project.title[:40] }}
+    </div>
+    <div class="g2 mt3" style="align-items:start;">
+      <div>
+        <div class="card mb3">
+          <div class="card-body">
+            <div class="fac gap2 mb2">
+              {% if project.category %}<span class="badge badge-teal">{{ project.category }}</span>{% endif %}
+              <span class="badge badge-green">{{ project.status }}</span>
+            </div>
+            <h2 style="margin-bottom:.75rem;">{{ project.title }}</h2>
+            <div class="fac gap2 mb3 text-sm text-muted">
+              <span>👤 {{ project.buyer_name }}</span>
+              {% if project.deadline %}<span>📅 Deadline: {{ project.deadline }}</span>{% endif %}
+            </div>
+            <p style="white-space:pre-wrap;">{{ project.description }}</p>
+            {% if project.budget_min or project.budget_max %}
+            <div class="mt3" style="background:var(--teal-glow);padding:1rem;border-radius:var(--radius-sm);">
+              <span style="font-weight:700;">💰 Budget: </span>
+              <span class="text-teal fw7">🪙 {{ project.budget_min|int }} – {{ project.budget_max|int }} coins</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><strong>💼 Bids ({{ bids|length }})</strong></div>
+          {% if bids %}
+          {% for b in bids %}
+          <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--gray-100);">
+            <div class="fb mb1">
+              <div class="fac gap2">
+                <div class="gig-card-avatar">{{ b.seller_name[0].upper() }}</div>
+                <div>
+                  <div style="font-weight:700;">{{ b.seller_name }}</div>
+                  {% if b.university %}<div style="font-size:.78rem;color:var(--gray-500);">{{ b.university }}</div>{% endif %}
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div class="text-teal fw7">🪙 {{ b.amount|int }}</div>
+                <div style="font-size:.78rem;color:var(--gray-500);">{{ b.delivery_days }} days</div>
+              </div>
+            </div>
+            {% if b.proposal %}<p style="font-size:.88rem;">{{ b.proposal }}</p>{% endif %}
+            {% if project.buyer_id == current_user.user_id and project.status == 'Open' %}
+            <form method="POST" action="{{ url_for('projects.accept_bid', bid_id=b.bid_id) }}" class="mt2" onsubmit="return confirm('Accept this bid?')">
+              <button type="submit" class="btn btn-primary btn-sm">✅ Accept This Bid</button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+          {% else %}
+          <div class="empty" style="padding:2rem;"><p>No bids yet.</p></div>
+          {% endif %}
+        </div>
+      </div>
+      <div style="position:sticky;top:84px;">
+        {% if current_user.is_seller() and project.buyer_id != current_user.user_id and project.status == 'Open' %}
+        {% if already_bid %}
+        <div class="card"><div class="card-body tc"><div style="font-size:2rem;">✅</div><div style="font-weight:700;margin-top:.5rem;">Bid Placed!</div></div></div>
+        {% else %}
+        <div class="card">
+          <div class="card-header"><strong>💼 Place Your Bid</strong></div>
+          <div class="card-body">
+            <form method="POST" action="{{ url_for('projects.place_bid', project_id=project.project_id) }}">
+              <div class="form-group">
+                <label class="form-label">Your Bid (Coins)<span class="req">*</span></label>
+                <input type="number" name="amount" class="form-control" min="1" required placeholder="50"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Delivery Days<span class="req">*</span></label>
+                <input type="number" name="delivery_days" class="form-control" min="1" value="3" required/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Proposal</label>
+                <textarea name="proposal" class="form-control" rows="4" placeholder="Why are you the best fit?" maxlength="500"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Submit Bid →</button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

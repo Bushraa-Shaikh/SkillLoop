@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Browse Gigs{% endblock %}
+{% block content %}
+
+<div class="page-wrap">
+  <div class="container">
+    <div class="page-hdr">
+      <h2>Browse Gigs</h2>
+      <p>{{ total }} gigs found{% if filters.q %} for "{{ filters.q }}"{% endif %}</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:260px 1fr;gap:2rem;align-items:start;">
+
+      <!-- Filters -->
+      <div class="card">
+        <div class="card-header"><strong>🔧 Filters</strong></div>
+        <div class="card-body">
+
+          <form method="GET" action="{{ url_for('main.browse') }}">
+            <input type="hidden" name="q" value="{{ filters.q or '' }}"/>
+
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select name="category" class="form-control">
+                <option value="">All Categories</option>
+                {% for c in categories %}
+                  <option value="{{ c }}" {% if filters.category==c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Price Range (Coins)</label>
+              <div class="form-row">
+                <input type="number" name="min_price" class="form-control" placeholder="Min" value="{{ filters.min_price or '' }}"/>
+                <input type="number" name="max_price" class="form-control" placeholder="Max" value="{{ filters.max_price or '' }}"/>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Delivery (days)</label>
+              <select name="delivery" class="form-control">
+                <option value="">Any</option>
+                {% for d in [1,3,7,14,30] %}
+                  <option value="{{ d }}" {% if filters.delivery|string==d|string %}selected{% endif %}>Up to {{ d }} days</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Min Rating</label>
+              <select name="rating" class="form-control">
+                <option value="">Any</option>
+                {% for r in [4.5,4.0,3.5,3.0] %}
+                  <option value="{{ r }}" {% if filters.rating|string==r|string %}selected{% endif %}>{{ r }}+ ⭐</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">University</label>
+              <input type="text" name="university" class="form-control" placeholder="Filter by university" value="{{ filters.university or '' }}"/>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Sort By</label>
+              <select name="sort" class="form-control">
+                <option value="popular" {% if filters.sort=='popular' %}selected{% endif %}>Most Popular</option>
+                <option value="rating" {% if filters.sort=='rating' %}selected{% endif %}>Highest Rated</option>
+                <option value="price_low" {% if filters.sort=='price_low' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_high" {% if filters.sort=='price_high' %}selected{% endif %}>Price: High to Low</option>
+                <option value="newest" {% if filters.sort=='newest' %}selected{% endif %}>Newest First</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Apply Filters</button>
+            <a href="{{ url_for('main.browse') }}" class="btn btn-ghost btn-block mt1">Clear All</a>
+          </form>
+
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div>
+        {% if gigs %}
+        <div class="g3" style="gap:1.25rem;">
+
+          {% for gig in gigs %}
+          <a href="{{ url_for('main.gig_detail', gig_id=gig.gig_id) }}" class="gig-card">
+
+            <div class="gig-card-img">
+              {% if gig.thumbnail %}
+                <img src="{{ url_for('static',filename='images/gigs/'+gig.thumbnail) }}" alt=""/>
+              {% else %}
+                🎯
+              {% endif %}
+            </div>
+
+            <div class="gig-card-body">
+              <div class="gig-card-seller">
+                <div class="gig-card-avatar">{{ gig.seller_name[0].upper() }}</div>
+                <span class="gig-card-seller-name">{{ gig.seller_name }}</span>
+                {% if gig.university %}
+                  <span class="badge badge-gray" style="margin-left:auto;font-size:.65rem;">
+                    {{ gig.university[:12] }}
+                  </span>
+                {% endif %}
+              </div>
+
+              <div class="gig-card-title">{{ gig.title }}</div>
+              <div style="font-size:.8rem;color:var(--gray-500);">🚚 {{ gig.delivery_days }}d delivery</div>
+            </div>
+
+            <div class="gig-card-footer">
+              <div class="gig-card-rating">⭐ {{ "%.1f"|format(gig.rating or 0) }}</div>
+              <div class="gig-card-price">🪙 {{ gig.price|int }}</div>
+            </div>
+
+          </a>
+          {% endfor %}
+
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div style="display:flex;justify-content:center;gap:.5rem;margin-top:2rem;">
+
+          {% if page > 1 %}
+            <a href="?{{ request.query_string.decode() | replace('page='+page|string,'page='+(page-1)|string) }}" class="btn btn-ghost btn-sm">← Prev</a>
+          {% endif %}
+
+          {% for p in range(1, total_pages+1) %}
+            <a href="?{{ request.query_string.decode() | replace('page='+page|string,'page='+p|string) }}"
+               class="btn btn-sm {% if p==page %}btn-primary{% else %}btn-ghost{% endif %}">
+              {{ p }}
+            </a>
+          {% endfor %}
+
+          {% if page < total_pages %}
+            <a href="?{{ request.query_string.decode() | replace('page='+page|string,'page='+(page+1)|string) }}" class="btn btn-ghost btn-sm">Next →</a>
+          {% endif %}
+
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty">
+          <div class="empty-icon">🔍</div>
+          <h3>No gigs found</h3>
+          <p>Try different filters or search terms.</p>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

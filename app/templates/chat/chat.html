@@ -1,0 +1,112 @@
+
+{% extends "base.html" %}
+{% block title %}Chat – Order #{{ order.order_id }}{% endblock %}
+{% block body_order_id %}{{ order.order_id }}{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container">
+    <div class="chat-layout">
+      <!-- Chat Main -->
+      <div class="chat-main">
+        <div class="chat-hdr">
+          <div class="gig-card-avatar" style="width:40px;height:40px;">{{ (order.seller_name if not is_seller else order.buyer_name)[0].upper() }}</div>
+          <div>
+            <div style="font-weight:700;">{{ order.gig_title }}</div>
+            <div style="font-size:.8rem;color:var(--gray-500);">With {{ order.seller_name if not is_seller else order.buyer_name }}</div>
+          </div>
+          <span class="badge status-{{ order.status }}" style="margin-left:auto;">{{ order.status }}</span>
+        </div>
+
+        <div class="chat-msgs" id="chat-messages">
+          {% for m in messages %}
+          <div class="msg {% if m.sender_id == current_user.user_id %}mine{% else %}theirs{% endif %}">
+            <div class="msg-bubble">
+              {% if m.body %}<div>{{ m.body }}</div>{% endif %}
+              {% if m.drive_link %}<a href="{{ m.drive_link }}" target="_blank" class="drive-link-chip">📎 View Shared File</a>{% endif %}
+            </div>
+            <div class="msg-meta">{{ m.sender_name }} · {{ m.sent_at.strftime('%H:%M') if m.sent_at else '' }}</div>
+          </div>
+          {% endfor %}
+          {% if not messages %}
+          <div class="empty" style="padding:3rem;"><div class="empty-icon">💬</div><p>No messages yet. Say hello!</p></div>
+          {% endif %}
+        </div>
+
+        <form class="chat-input" id="chat-form" method="POST" action="{{ url_for('chat.send_message', order_id=order.order_id) }}">
+          <textarea name="body" placeholder="Type a message… (Enter to send, Shift+Enter for new line)" rows="1"></textarea>
+          <button type="submit" class="btn btn-primary">Send</button>
+        </form>
+      </div>
+
+      <!-- Sidebar -->
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <!-- Order Info -->
+        <div class="card">
+          <div class="card-header"><strong>📦 Order Details</strong></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:.75rem;font-size:.88rem;">
+              <div class="fb"><span class="text-muted">Order ID</span><span class="fw7">#{{ order.order_id }}</span></div>
+              <div class="fb"><span class="text-muted">Status</span><span class="badge status-{{ order.status }}">{{ order.status }}</span></div>
+              <div class="fb"><span class="text-muted">Amount</span><span class="text-teal fw7">🪙 {{ order.amount|int }}</span></div>
+              <div class="fb"><span class="text-muted">Payment</span><span>{{ order.payment_method|capitalize }}</span></div>
+              <div class="fb"><span class="text-muted">Delivery</span><span>{{ order.delivery_days }} days</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Drive Link Share -->
+        <div class="card">
+          <div class="card-header"><strong>📎 Share File</strong></div>
+          <div class="card-body">
+            <form method="POST" action="{{ url_for('chat.send_message', order_id=order.order_id) }}">
+              <div class="form-group">
+                <input type="url" name="drive_link" class="form-control" placeholder="Paste Google Drive link…"/>
+              </div>
+              <input type="hidden" name="body" value="📎 Shared a file"/>
+              <button type="submit" class="btn btn-ghost btn-block btn-sm">Share Link</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card">
+          <div class="card-header"><strong>⚡ Actions</strong></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:.5rem;">
+            {% if is_seller and order.status == 'InProgress' %}
+            <a href="{{ url_for('orders.order_status', order_id=order.order_id) }}" class="btn btn-primary btn-sm">✅ Mark Delivered</a>
+            {% endif %}
+            {% if not is_seller and order.status == 'Delivered' %}
+            <a href="{{ url_for('orders.order_status', order_id=order.order_id) }}" class="btn btn-primary btn-sm">✅ Approve Work</a>
+            {% endif %}
+            <a href="{{ url_for('orders.order_status', order_id=order.order_id) }}" class="btn btn-ghost btn-sm">👁 View Order</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// AJAX send message
+document.getElementById('chat-form').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const fd = new FormData(this);
+  const body = fd.get('body');
+  if (!body.trim()) return;
+  const resp = await fetch(this.action, {method:'POST',body:fd});
+  const data = await resp.json();
+  if (data.success) {
+    this.querySelector('textarea').value = '';
+    const msgs = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = 'msg mine';
+    div.innerHTML = `<div class="msg-bubble"><div>${escHtml(data.body)}</div></div><div class="msg-meta">You · just now</div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+});
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+</script>
+{% endblock %}
+

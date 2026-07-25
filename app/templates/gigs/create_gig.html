@@ -1,0 +1,71 @@
+
+{% extends "base.html" %}
+{% block title %}Create Gig{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container" style="max-width:800px;">
+    <div class="page-hdr"><h2>🛍 Create a New Gig</h2><p>Showcase your skills and start earning Campus Coins</p></div>
+    <div class="card">
+      <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+          <div class="form-group">
+            <label class="form-label">Gig Title<span class="req">*</span></label>
+            <input type="text" name="title" class="form-control" value="{{ form.get('title','') }}" placeholder="I will design a professional logo for your brand" required maxlength="200"/>
+            <div class="form-hint">Be specific and clear. Good titles get more orders.</div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category<span class="req">*</span></label>
+              <select name="category" class="form-control" required>
+                <option value="">Select category…</option>
+                {% for c in categories %}<option value="{{ c }}" {% if form.get('category')==c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price (Coins)<span class="req">*</span></label>
+              <input type="number" name="price" class="form-control" value="{{ form.get('price',0) }}" min="0" max="9999" required/>
+              <div class="form-hint">Set 0 for free / swap-only gigs</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description<span class="req">*</span></label>
+            <textarea name="description" class="form-control" rows="6"
+              placeholder="Describe what you offer, your process, what the buyer will receive…" required maxlength="2000">{{ form.get('description','') }}</textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Delivery Time (Days)<span class="req">*</span></label>
+              <input type="number" name="delivery_days" class="form-control" value="{{ form.get('delivery_days',3) }}" min="1" max="90" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Revisions</label>
+              <input type="number" name="revisions" class="form-control" value="{{ form.get('revisions',1) }}" min="0" max="10"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tags</label>
+            <input type="text" name="tags" class="form-control" value="{{ form.get('tags','') }}" placeholder="logo, branding, design, illustrator (comma separated)"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Thumbnail Image</label>
+            <input type="file" name="thumbnail" class="form-control" accept="image/*" data-preview="thumb-preview"/>
+            <img id="thumb-preview" style="display:none;width:100%;max-height:200px;object-fit:cover;border-radius:var(--radius-sm);margin-top:.5rem;" alt=""/>
+          </div>
+          <div class="form-group">
+            <label class="form-check">
+              <input type="checkbox" name="allow_swap" {% if form.get('allow_swap') %}checked{% endif %}/>
+              <span>Accept Skill Swap (no coins needed)</span>
+            </label>
+            <div class="form-hint">Allow buyers to exchange a skill instead of paying coins.</div>
+          </div>
+          <div class="divider"></div>
+          <div style="display:flex;gap:1rem;">
+            <button type="submit" class="btn btn-primary btn-lg">🚀 Publish Gig</button>
+            <a href="{{ url_for('gigs.seller_gigs') }}" class="btn btn-ghost">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

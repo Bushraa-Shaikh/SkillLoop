@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="page-wrap">
+  <div class="container">
+
+    <div class="dash-layout">
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+
+        <div class="sb-user">
+          <div class="sb-avatar">{{ current_user.name[0].upper() }}</div>
+          <div class="sb-name">{{ current_user.name }}</div>
+          <div class="sb-role">{{ current_user.role }}</div>
+          <div class="sb-coins">🪙 {{ wallet_balance|int }} coins</div>
+        </div>
+
+        <nav class="sb-nav">
+          <a href="{{ url_for('dashboard.index') }}" class="active">📊 Dashboard</a>
+
+          {% if current_user.is_buyer() %}
+          <a href="{{ url_for('main.browse') }}">🔍 Browse Gigs</a>
+          <a href="{{ url_for('orders.buyer_orders') }}">📦 My Orders</a>
+          <a href="{{ url_for('projects.post_project') }}">📋 Post Project</a>
+          {% endif %}
+
+          {% if current_user.is_seller() %}
+          <a href="{{ url_for('gigs.seller_gigs') }}">🛍 My Gigs</a>
+          <a href="{{ url_for('gigs.create_gig') }}">➕ Create Gig</a>
+          <a href="{{ url_for('orders.seller_orders') }}">📥 Orders</a>
+          {% endif %}
+
+          <a href="{{ url_for('chat.messages') }}">💬 Messages</a>
+          <a href="{{ url_for('wallet.wallet') }}">🪙 Wallet</a>
+          <a href="{{ url_for('profile.my_profile') }}">👤 Profile</a>
+        </nav>
+
+      </aside>
+
+      <!-- Main -->
+      <main>
+
+        <div class="fb mb3">
+          <div>
+            <h2>Welcome back, {{ current_user.name.split()[0] }}! 👋</h2>
+            <p>Here's what's happening today.</p>
+          </div>
+
+          {% if current_user.is_seller() %}
+          <a href="{{ url_for('gigs.create_gig') }}" class="btn btn-primary">➕ New Gig</a>
+          {% endif %}
+        </div>
+
+        <!-- Stats -->
+        <div class="g4 mb4">
+
+          <div class="stat-card">
+            <div class="stat-icon si-teal">🪙</div>
+            <div>
+              <div class="stat-num" data-animate-num="{{ wallet_balance|int }}">{{ wallet_balance|int }}</div>
+              <div class="stat-label">Campus Coins</div>
+            </div>
+          </div>
+
+          {% if current_user.is_buyer() %}
+          <div class="stat-card">
+            <div class="stat-icon si-amber">📦</div>
+            <div>
+              <div class="stat-num">{{ total_buyer_orders|default(0) }}</div>
+              <div class="stat-label">Total Orders</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon si-navy">⏳</div>
+            <div>
+              <div class="stat-num">{{ active_orders|default([])|length }}</div>
+              <div class="stat-label">Active Orders</div>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if current_user.is_seller() %}
+          <div class="stat-card">
+            <div class="stat-icon si-green">✅</div>
+            <div>
+              <div class="stat-num">{{ completed_orders|default(0) }}</div>
+              <div class="stat-label">Completed</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon si-amber">💰</div>
+            <div>
+              <div class="stat-num">{{ total_earnings|default(0)|int }}</div>
+              <div class="stat-label">Total Earned</div>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="stat-card">
+            <div class="stat-icon si-navy">🔔</div>
+            <div>
+              <div class="stat-num">{{ unread_notifs|default(0) }}</div>
+              <div class="stat-label">Notifications</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Buyer Orders -->
+        {% if current_user.is_buyer() and buyer_orders %}
+        <div class="card mb3">
+          <div class="card-header">
+            <strong>📦 Recent Orders</strong>
+            <a href="{{ url_for('orders.buyer_orders') }}" class="btn btn-ghost btn-sm">View All</a>
+          </div>
+
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Gig</th>
+                  <th>Seller</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for o in buyer_orders %}
+                <tr>
+                  <td><div style="font-weight:600;font-size:.88rem;">{{ o.gig_title }}</div></td>
+                  <td>{{ o.seller_name }}</td>
+                  <td class="text-teal fw7">🪙 {{ o.amount|int }}</td>
+                  <td><span class="badge status-{{ o.status }}">{{ o.status }}</span></td>
+                  <td><a href="{{ url_for('chat.chat_room',order_id=o.order_id) }}" class="btn btn-ghost btn-sm">💬 Chat</a></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Seller Gigs -->
+        {% if current_user.is_seller() and seller_gigs %}
+        <div class="card mb3">
+          <div class="card-header">
+            <strong>🛍 My Gigs</strong>
+            <a href="{{ url_for('gigs.create_gig') }}" class="btn btn-primary btn-sm">➕ New</a>
+          </div>
+
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Price</th>
+                  <th>Orders</th>
+                  <th>Rating</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for g in seller_gigs %}
+                <tr>
+                  <td><a href="{{ url_for('main.gig_detail',gig_id=g.gig_id) }}" style="font-weight:600;">{{ g.title[:40] }}</a></td>
+                  <td class="text-teal fw7">🪙 {{ g.price|int }}</td>
+                  <td>{{ g.orders_count }}</td>
+                  <td>{% if g.rating %}⭐ {{ "%.1f"|format(g.rating) }}{% else %}-{% endif %}</td>
+                  <td class="fac gap1">
+                    <a href="{{ url_for('gigs.edit_gig',gig_id=g.gig_id) }}" class="btn btn-ghost btn-sm">✏️</a>
+                    <form method="POST" action="{{ url_for('gigs.delete_gig',gig_id=g.gig_id) }}" style="display:inline;" onsubmit="return confirm('Delete this gig?')">
+                      <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+                    </form>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Notifications -->
+        {% if notifications %}
+        <div class="card">
+          <div class="card-header">
+            <strong>🔔 Recent Notifications</strong>
+            <a href="{{ url_for('dashboard.notifications') }}" class="btn btn-ghost btn-sm">View All</a>
+          </div>
+
+          {% for n in notifications %}
+          <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--gray-100);display:flex;gap:1rem;">
+            <div style="font-size:1.2rem;">
+              {% if n.type=='order_placed' %}📦{% elif n.type=='message_sent' %}💬{% elif n.type=='order_completed' %}✅{% else %}🔔{% endif %}
+            </div>
+
+            <div>
+              <div style="font-weight:600;font-size:.9rem;">{{ n.title }}</div>
+              <div style="font-size:.82rem;color:var(--gray-500);">{{ n.body }}</div>
+            </div>
+
+            {% if not n.is_read %}
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:6px;"></div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </main>
+
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

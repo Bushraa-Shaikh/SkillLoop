@@ -1,0 +1,72 @@
+
+{% extends "base.html" %}
+{% block title %}My Orders{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container">
+    <div class="dash-layout">
+      <aside class="sidebar">
+        <div class="sb-user">
+          <div class="sb-avatar">{{ current_user.name[0].upper() }}</div>
+          <div class="sb-name">{{ current_user.name }}</div>
+          <div class="sb-role">{{ current_user.role }}</div>
+        </div>
+        <nav class="sb-nav">
+          <a href="{{ url_for('dashboard.index') }}">📊 Dashboard</a>
+          <a href="{{ url_for('main.browse') }}">🔍 Browse Gigs</a>
+          <a href="{{ url_for('orders.buyer_orders') }}" class="active">📦 My Orders</a>
+          <a href="{{ url_for('projects.post_project') }}">📋 Post Project</a>
+          <a href="{{ url_for('chat.messages') }}">💬 Messages</a>
+          <a href="{{ url_for('wallet.wallet') }}">🪙 Wallet</a>
+        </nav>
+      </aside>
+      <main>
+        <div class="fb mb3">
+          <h2>My Orders</h2>
+          <a href="{{ url_for('main.browse') }}" class="btn btn-primary">🔍 Browse Gigs</a>
+        </div>
+        {% if orders %}
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+          {% for o in orders %}
+          <div class="card">
+            <div class="card-body">
+              <div style="display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:start;">
+                <div>
+                  <div class="fb mb1">
+                    <span class="badge status-{{ o.status }}">{{ o.status }}</span>
+                    <span style="font-size:.8rem;color:var(--gray-500);">#{{ o.order_id }}</span>
+                  </div>
+                  <div style="font-weight:700;font-size:1rem;margin-bottom:.25rem;">{{ o.gig_title }}</div>
+                  <div style="font-size:.85rem;color:var(--gray-500);">Seller: {{ o.seller_name }}</div>
+                  {% if o.delivery_link and o.status == 'Delivered' %}
+                  <div class="mt1">
+                    <a href="{{ o.delivery_link }}" target="_blank" class="btn btn-ghost btn-sm">📎 View Delivery</a>
+                  </div>
+                  {% endif %}
+                </div>
+                <div style="text-align:right;">
+                  <div class="text-teal fw7 mb1">🪙 {{ o.amount|int }}</div>
+                  <div style="font-size:.78rem;color:var(--gray-500);" class="mb2">
+                    {{ o.created_at.strftime('%b %d, %Y') if o.created_at else '' }}
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:.4rem;">
+                    <a href="{{ url_for('chat.chat_room',order_id=o.order_id) }}" class="btn btn-ghost btn-sm">💬 Chat</a>
+                    <a href="{{ url_for('orders.order_status',order_id=o.order_id) }}" class="btn btn-ghost btn-sm">👁 Details</a>
+                    {% if o.status == 'Delivered' %}
+                    <a href="{{ url_for('orders.order_status',order_id=o.order_id) }}" class="btn btn-primary btn-sm">✅ Approve</a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty"><div class="empty-icon">📦</div><h3>No orders yet</h3><p>Browse gigs and place your first order!</p><a href="{{ url_for('main.browse') }}" class="btn btn-primary mt2">Browse Gigs</a></div>
+        {% endif %}
+      </main>
+    </div>
+  </div>
+</div>
+{% endblock %}

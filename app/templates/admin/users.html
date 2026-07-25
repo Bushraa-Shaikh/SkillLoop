@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Admin – Users{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container">
+    <div class="fb mb3">
+      <h2>👥 Users</h2>
+      <a href="{{ url_for('admin.index') }}" class="btn btn-ghost btn-sm">← Back</a>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Verified</th><th>Joined</th><th>Action</th></tr></thead>
+          <tbody>
+            {% for u in users %}
+            <tr>
+              <td>#{{ u.user_id }}</td>
+              <td><a href="{{ url_for('profile.public_profile', user_id=u.user_id) }}" style="font-weight:600;">{{ u.name }}</a></td>
+              <td style="font-size:.82rem;">{{ u.email }}</td>
+              <td><span class="badge badge-gray">{{ u.role }}</span></td>
+              <td>{% if u.is_verified %}✅{% else %}❌{% endif %}</td>
+              <td style="font-size:.78rem;color:var(--gray-500);">{{ u.joined_at.strftime('%b %d, %Y') if u.joined_at else '-' }}</td>
+              <td>
+                {% if u.is_active %}
+                <form method="POST" action="{{ url_for('admin.deactivate_user', user_id=u.user_id) }}" onsubmit="return confirm('Deactivate?')">
+                  <button type="submit" class="btn btn-danger btn-sm">Deactivate</button>
+                </form>
+                {% else %}<span class="badge badge-red">Inactive</span>{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Post Project{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container" style="max-width:700px;">
+    <div class="page-hdr">
+      <h2>📋 Post a Project</h2>
+      <p>Describe your project and receive bids from skilled students</p>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <form method="POST">
+          <div class="form-group">
+            <label class="form-label">Project Title<span class="req">*</span></label>
+            <input type="text" name="title" class="form-control" value="{{ form.get('title','') }}" placeholder="Build a responsive portfolio website" required maxlength="200"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description<span class="req">*</span></label>
+            <textarea name="description" class="form-control" rows="5" required maxlength="2000" placeholder="Describe your project in detail…">{{ form.get('description','') }}</textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Budget Min (Coins)</label>
+              <input type="number" name="budget_min" class="form-control" value="{{ form.get('budget_min',0) }}" min="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Budget Max (Coins)</label>
+              <input type="number" name="budget_max" class="form-control" value="{{ form.get('budget_max',0) }}" min="0"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Deadline</label>
+              <input type="date" name="deadline" class="form-control" value="{{ form.get('deadline','') }}"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select name="category" class="form-control">
+                <option value="">Select…</option>
+                {% for c in categories %}
+                <option value="{{ c }}" {% if form.get('category')==c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:1rem;">
+            <button type="submit" class="btn btn-primary btn-lg">🚀 Post Project</button>
+            <a href="{{ url_for('projects.list_projects') }}" class="btn btn-ghost">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Place Bid{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container" style="max-width:600px;">
+    <div class="page-hdr">
+      <div class="breadcrumb">
+        <a href="{{ url_for('projects.list_projects') }}">Projects</a> ›
+        <a href="{{ url_for('projects.project_detail', project_id=project.project_id) }}">{{ project.title[:30] }}</a> ›
+        Place Bid
+      </div>
+      <h2 class="mt2">💼 Place Your Bid</h2>
+    </div>
+    <div class="card mb3">
+      <div class="card-body">
+        <div style="font-weight:700;margin-bottom:.25rem;">{{ project.title }}</div>
+        <div style="font-size:.85rem;color:var(--gray-600);">{{ project.description[:200] }}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <form method="POST">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Your Bid (Coins)<span class="req">*</span></label>
+              <input type="number" name="amount" class="form-control" min="1" required placeholder="50"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Delivery Days<span class="req">*</span></label>
+              <input type="number" name="delivery_days" class="form-control" min="1" value="3" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Proposal<span class="req">*</span></label>
+            <textarea name="proposal" class="form-control" rows="5" required maxlength="500" placeholder="Why are you the best fit?"></textarea>
+          </div>
+          <div style="display:flex;gap:1rem;">
+            <button type="submit" class="btn btn-primary btn-lg">Submit Bid →</button>
+            <a href="{{ url_for('projects.project_detail', project_id=project.project_id) }}" class="btn btn-ghost">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Edit Profile{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container" style="max-width:700px;">
+    <div class="page-hdr"><h2>👤 Edit Profile</h2></div>
+    <div class="card">
+      <div class="card-body">
+        <form method="POST">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" name="name" class="form-control" value="{{ user.name }}"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bio</label>
+            <textarea name="bio" class="form-control" rows="4" maxlength="500">{{ user.bio or '' }}</textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">University</label>
+              <input type="text" name="university" class="form-control" value="{{ user.university or '' }}"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Country</label>
+              <input type="text" name="country" class="form-control" value="{{ user.country or '' }}"/>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div style="background:var(--gray-50);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1rem;">
+            <div style="font-weight:600;margin-bottom:.5rem;">Account Info</div>
+            <div class="text-sm text-muted">Email: {{ user.email }}</div>
+            <div class="text-sm text-muted">Role: {{ user.role|capitalize }}</div>
+            <div class="text-sm text-muted">Verified: {% if user.is_verified %}✅ Yes{% else %}❌ No{% endif %}</div>
+          </div>
+          <div style="display:flex;gap:1rem;">
+            <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+            <a href="{{ url_for('profile.public_profile', user_id=user.user_id) }}" class="btn btn-ghost">View Profile</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

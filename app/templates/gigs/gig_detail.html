@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}{{ gig.title }}{% endblock %}
+{% block content %}
+
+<div class="page-wrap">
+  <div class="container">
+
+    <div class="breadcrumb">
+      <a href="{{ url_for('main.index') }}">Home</a> ›
+      <a href="{{ url_for('main.browse') }}">Browse</a> ›
+      {{ gig.title[:40] }}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:2rem;align-items:start;">
+
+      <!-- Left -->
+      <div>
+
+        <div class="card mb3">
+          <div style="height:320px;background:linear-gradient(135deg,var(--navy-3),var(--teal-dark));display:flex;align-items:center;justify-content:center;font-size:4rem;">
+            {% if gig.thumbnail %}
+              <img src="{{ url_for('static',filename='images/gigs/'+gig.thumbnail) }}" style="width:100%;height:100%;object-fit:cover;" alt=""/>
+            {% else %}
+              🎯
+            {% endif %}
+          </div>
+
+          <div class="card-body">
+
+            <div class="fac gap2 mb2">
+              {% if gig.category %}
+                <span class="badge badge-teal">{{ gig.category }}</span>
+              {% endif %}
+              {% if gig.allow_swap %}
+                <span class="badge badge-amber">🔄 Swap Available</span>
+              {% endif %}
+            </div>
+
+            <h1 style="font-size:1.6rem;margin-bottom:1rem;">{{ gig.title }}</h1>
+
+            <div class="fac gap2 mb3">
+              <div class="gig-card-avatar" style="width:40px;height:40px;font-size:1rem;">
+                {{ gig.seller_name[0].upper() }}
+              </div>
+
+              <div>
+                <a href="{{ url_for('profile.public_profile',user_id=gig.seller_id) }}" style="font-weight:700;">
+                  {{ gig.seller_name }}
+                </a>
+                {% if gig.university %}
+                  <div style="font-size:.8rem;color:var(--gray-500);">{{ gig.university }}</div>
+                {% endif %}
+              </div>
+
+              {% if gig.seller_rating %}
+                <span class="badge badge-amber">⭐ {{ "%.1f"|format(gig.seller_rating) }}</span>
+              {% endif %}
+            </div>
+
+            <div style="white-space:pre-wrap;color:var(--gray-600);line-height:1.8;">
+              {{ gig.description }}
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Reviews -->
+        <div class="card">
+          <div class="card-header">
+            <strong>⭐ Reviews ({{ reviews|length }})</strong>
+          </div>
+
+          {% if reviews %}
+            {% for r in reviews %}
+            <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--gray-100);">
+
+              <div class="fb mb1">
+                <div class="fac gap2">
+                  <div class="gig-card-avatar">{{ r.reviewer_name[0].upper() }}</div>
+                  <div>
+                    <div style="font-weight:600;font-size:.9rem;">{{ r.reviewer_name }}</div>
+                    <div style="font-size:.75rem;color:var(--gray-500);">{{ r.university or '' }}</div>
+                  </div>
+                </div>
+
+                <div>
+                  {% for i in range(r.rating) %}⭐{% endfor %}
+                </div>
+              </div>
+
+              <p style="font-size:.9rem;">{{ r.comment }}</p>
+
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty" style="padding:2rem;">
+              <p>No reviews yet. Be the first!</p>
+            </div>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <!-- Right – Order Box -->
+      <div style="position:sticky;top:84px;">
+
+        <div class="card">
+
+          <div class="card-header">
+            <span style="font-size:1.5rem;font-weight:800;color:var(--teal);">
+              🪙 {{ gig.price|int }} coins
+            </span>
+          </div>
+
+          <div class="card-body">
+
+            <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.5rem;">
+
+              <div class="fac gap2">
+                <span>🚚</span>
+                <span style="font-size:.9rem;">
+                  Delivery in <strong>{{ gig.delivery_days }} day{{ 's' if gig.delivery_days > 1 else '' }}</strong>
+                </span>
+              </div>
+
+              <div class="fac gap2">
+                <span>🔄</span>
+                <span style="font-size:.9rem;">
+                  <strong>{{ gig.revisions }}</strong> revision{{ 's' if gig.revisions > 1 else '' }}
+                </span>
+              </div>
+
+              {% if gig.allow_swap %}
+              <div class="fac gap2">
+                <span>🤝</span>
+                <span style="font-size:.9rem;">Skill Swap accepted</span>
+              </div>
+              {% endif %}
+
+            </div>
+
+            {% if current_user.is_authenticated %}
+
+              {% if already_ordered %}
+                <div class="alert alert-info">
+                  You already have an active order for this gig.
+                </div>
+                <a href="{{ url_for('orders.buyer_orders') }}" class="btn btn-ghost btn-block">
+                  View My Orders
+                </a>
+
+              {% elif gig.seller_id == current_user.user_id %}
+                <div class="alert alert-warning">
+                  This is your own gig.
+                </div>
+
+              {% else %}
+                <a href="{{ url_for('orders.place_order', gig_id=gig.gig_id) }}" class="btn btn-primary btn-block btn-lg">
+                  Order Now →
+                </a>
+              {% endif %}
+
+            {% else %}
+              <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-block btn-lg">
+                Login to Order
+              </a>
+            {% endif %}
+
+          </div>
+
+          <div class="card-footer" style="text-align:center;font-size:.8rem;color:var(--gray-500);">
+            👁 {{ gig.views }} views · 📦 {{ gig.orders_count }} orders
+          </div>
+
+        </div>
+
+        <!-- Seller card -->
+        <div class="card mt2">
+          <div class="card-body tc">
+
+            <div class="user-card-avatar" style="width:56px;height:56px;margin-bottom:.75rem;">
+              {{ gig.seller_name[0].upper() }}
+            </div>
+
+            <div style="font-weight:700;">{{ gig.seller_name }}</div>
+
+            {% if gig.university %}
+              <div class="text-sm text-muted">{{ gig.university }}</div>
+            {% endif %}
+
+            {% if gig.country %}
+              <div class="text-sm text-muted">🌍 {{ gig.country }}</div>
+            {% endif %}
+
+            <a href="{{ url_for('profile.public_profile',user_id=gig.seller_id) }}" class="btn btn-ghost btn-sm btn-block mt2">
+              View Profile
+            </a>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

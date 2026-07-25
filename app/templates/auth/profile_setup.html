@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Profile Setup{% endblock %}
+{% block content %}
+<div class="auth-page" style="align-items:flex-start;padding-top:3rem;">
+  <div class="auth-card" style="max-width:600px;">
+    <div class="auth-logo">
+      <div class="auth-logo-text">🎓 Skill<span>Loop</span></div>
+    </div>
+
+    <h2 class="auth-title">Set Up Your Profile</h2>
+    <p class="auth-sub">Tell the community about yourself</p>
+
+    <form method="POST">
+      <div class="form-group">
+        <label class="form-label">I want to<span class="req">*</span></label>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+          {% for val,icon,label,desc in [('buyer','🛒','Hire Talent','Buy gigs & post projects'),('seller','🛍','Sell Skills','Offer your skills & earn'),('both','⚡','Do Both','Buy and sell')] %}
+          <label style="border:2px solid var(--border);border-radius:var(--radius-md);padding:1.25rem;cursor:pointer;text-align:center;transition:var(--transition);" 
+                 onclick="document.querySelectorAll('.role-opt').forEach(x=>x.style.borderColor='var(--border)');this.style.borderColor='var(--teal)';"
+                 class="role-opt">
+
+            <input type="radio" name="role" value="{{ val }}" style="display:none;" {% if val=='buyer' %}checked{% endif %}/>
+
+            <div style="font-size:2rem;margin-bottom:.5rem;">{{ icon }}</div>
+            <div style="font-weight:700;font-size:.9rem;">{{ label }}</div>
+            <div style="font-size:.78rem;color:var(--gray-500);margin-top:3px;">{{ desc }}</div>
+
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Bio</label>
+        <textarea name="bio" class="form-control" placeholder="Tell buyers/sellers about yourself, your skills, and experience…" maxlength="500"></textarea>
+      </div>
+
+      {% if all_skills %}
+      <div class="form-group">
+        <label class="form-label">Your Skills</label>
+
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+          {% for skill in all_skills %}
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1.5px solid var(--border);border-radius:50px;cursor:pointer;font-size:.82rem;font-weight:500;transition:var(--transition);"
+                 onclick="this.style.borderColor=this.querySelector('input').checked?'var(--border)':'var(--teal)';this.style.background=this.querySelector('input').checked?'':'var(--teal-glow)';">
+
+            <input type="checkbox" name="skills" value="{{ skill.skill_id }}" style="display:none;"/>
+            {{ skill.name }}
+
+          </label>
+          {% endfor %}
+        </div>
+
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg">
+        Save & Go to Dashboard →
+      </button>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

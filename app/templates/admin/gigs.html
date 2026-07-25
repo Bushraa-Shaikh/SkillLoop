@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Admin – Gigs{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container">
+    <div class="fb mb3">
+      <h2>🛍 Gigs</h2>
+      <a href="{{ url_for('admin.index') }}" class="btn btn-ghost btn-sm">← Back</a>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Title</th><th>Seller</th><th>Price</th><th>Orders</th><th>Action</th></tr></thead>
+          <tbody>
+            {% for g in gigs %}
+            <tr>
+              <td>#{{ g.gig_id }}</td>
+              <td><a href="{{ url_for('main.gig_detail', gig_id=g.gig_id) }}" style="font-weight:600;">{{ g.title[:40] }}</a></td>
+              <td>{{ g.seller_name }}</td>
+              <td class="text-teal fw6">🪙 {{ g.price|int }}</td>
+              <td>{{ g.orders_count }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('admin.remove_gig', gig_id=g.gig_id) }}" onsubmit="return confirm('Remove?')">
+                  <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

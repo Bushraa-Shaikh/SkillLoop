@@ -1,0 +1,121 @@
+
+{% extends "base.html" %}
+{% block title %}Wallet{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container">
+    <div class="dash-layout">
+      <aside class="sidebar">
+        <div class="sb-user">
+          <div class="sb-avatar">{{ current_user.name[0].upper() }}</div>
+          <div class="sb-name">{{ current_user.name }}</div>
+          <div class="sb-role">{{ current_user.role }}</div>
+          <div class="sb-coins">🪙 {{ balance|int }} coins</div>
+        </div>
+        <nav class="sb-nav">
+          <a href="{{ url_for('dashboard.index') }}">📊 Dashboard</a>
+          {% if current_user.is_buyer() %}
+          <a href="{{ url_for('main.browse') }}">🔍 Browse Gigs</a>
+          <a href="{{ url_for('orders.buyer_orders') }}">📦 My Orders</a>
+          {% endif %}
+          {% if current_user.is_seller() %}
+          <a href="{{ url_for('gigs.seller_gigs') }}">🛍 My Gigs</a>
+          <a href="{{ url_for('orders.seller_orders') }}">📥 Orders</a>
+          {% endif %}
+          <a href="{{ url_for('chat.messages') }}">💬 Messages</a>
+          <a href="{{ url_for('wallet.wallet') }}" class="active">🪙 Wallet</a>
+          <a href="{{ url_for('profile.my_profile') }}">👤 Profile</a>
+        </nav>
+      </aside>
+      <main>
+        <!-- Balance Hero -->
+        <div class="wallet-hero">
+          <div class="wh-label">Available Balance</div>
+          <div class="wh-num" data-animate-num="{{ balance|int }}">{{ balance|int }}</div>
+          <div style="color:rgba(255,255,255,.6);font-size:.9rem;margin-top:.5rem;">Campus Coins</div>
+          <div style="display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap;">
+            <div style="background:rgba(255,255,255,.1);border-radius:var(--radius-sm);padding:.75rem 1.25rem;">
+              <div style="font-size:.75rem;opacity:.7;">Total Earned</div>
+              <div style="font-weight:700;font-size:1.1rem;color:var(--teal);">🪙 {{ transactions|selectattr('type','eq','credit')|map(attribute='amount')|sum|int }}</div>
+            </div>
+            <div style="background:rgba(255,255,255,.1);border-radius:var(--radius-sm);padding:.75rem 1.25rem;">
+              <div style="font-size:.75rem;opacity:.7;">Total Spent</div>
+              <div style="font-weight:700;font-size:1.1rem;color:var(--red);">🪙 {{ transactions|selectattr('type','eq','debit')|map(attribute='amount')|sum|int }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- How Coins Work -->
+        <div class="card mb3">
+          <div class="card-header"><strong>🪙 How Campus Coins Work</strong></div>
+          <div class="card-body">
+            <div class="g3">
+              <div style="text-align:center;padding:1rem;">
+                <div style="font-size:2rem;margin-bottom:.5rem;">🎁</div>
+                <div style="font-weight:700;margin-bottom:.25rem;">Welcome Bonus</div>
+                <div style="font-size:.82rem;color:var(--gray-500);">Get 100 coins on signup</div>
+              </div>
+              <div style="text-align:center;padding:1rem;">
+                <div style="font-size:2rem;margin-bottom:.5rem;">💼</div>
+                <div style="font-weight:700;margin-bottom:.25rem;">Complete Orders</div>
+                <div style="font-size:.82rem;color:var(--gray-500);">Earn coins by delivering work</div>
+              </div>
+              <div style="text-align:center;padding:1rem;">
+                <div style="font-size:2rem;margin-bottom:.5rem;">🤝</div>
+                <div style="font-weight:700;margin-bottom:.25rem;">Skill Swap</div>
+                <div style="font-size:.82rem;color:var(--gray-500);">Exchange services, no coins needed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="card">
+          <div class="card-header"><strong>📋 Transaction History</strong></div>
+          {% if transactions %}
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th></tr></thead>
+              <tbody>
+                {% for t in transactions %}
+                <tr>
+                  <td style="font-size:.82rem;color:var(--gray-500);">
+                    {{ t.created_at.strftime('%b %d, %Y') if t.created_at else '-' }}
+                  </td>
+                  <td>{{ t.description or '-' }}</td>
+                  <td>
+                    {% if t.type == 'credit' %}<span class="badge badge-green">↑ Credit</span>
+                    {% elif t.type == 'debit' %}<span class="badge badge-red">↓ Debit</span>
+                    {% elif t.type == 'swap' %}<span class="badge badge-amber">🔄 Swap</span>
+                    {% elif t.type == 'escrow' %}<span class="badge badge-gray">🔒 Escrow</span>
+                    {% elif t.type == 'release' %}<span class="badge badge-teal">✅ Released</span>
+                    {% elif t.type == 'easypaisa' %}
+                    <span class="badge" style="background:#e8f5e9;color:#1b5e20;">
+                        📱 EasyPaisa
+                    </span>
+                    {% elif t.type == 'jazzcash' %}
+                    <span class="badge" style="background:#fff3e0;color:#e65100;">
+                        📱 JazzCash
+                    </span>
+                    {% elif t.type == 'refund' %}
+                    <span class="badge badge-green">↩ Refund</span>
+                    {% else %}<span class="badge badge-gray">{{ t.type }}</span>{% endif %}
+                  </td>
+                  <td class="fw7 {% if t.type in ['credit','release'] %}txn-credit{% elif t.type == 'debit' %}txn-debit{% else %}txn-swap{% endif %}">
+                    {% if t.type in ['credit','release'] %}+{% elif t.type == 'debit' %}-{% endif %}🪙 {{ t.amount|int }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="empty"><div class="empty-icon">💳</div><h3>No transactions yet</h3><p>Start buying or selling to see your history.</p></div>
+          {% endif %}
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,41 @@
+
+{% extends "base.html" %}
+{% block title %}Admin Panel{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container">
+    <div class="fb mb3">
+      <div><h2>🔧 Admin Panel</h2><p>SkillLoop platform overview</p></div>
+    </div>
+    <div class="g4 mb4">
+      <div class="stat-card"><div class="stat-icon si-teal">👥</div><div><div class="stat-num">{{ total_users }}</div><div class="stat-label">Total Users</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-amber">🛍</div><div><div class="stat-num">{{ total_gigs }}</div><div class="stat-label">Active Gigs</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-navy">📦</div><div><div class="stat-num">{{ total_orders }}</div><div class="stat-label">Total Orders</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-green">💰</div><div><div class="stat-num">🪙 {{ total_revenue|int }}</div><div class="stat-label">Total Revenue</div></div></div>
+    </div>
+    <div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;">
+      <a href="{{ url_for('admin.users') }}"  class="btn btn-navy">👥 Manage Users</a>
+      <a href="{{ url_for('admin.gigs') }}"   class="btn btn-navy">🛍 Manage Gigs</a>
+      <a href="{{ url_for('admin.orders') }}" class="btn btn-navy">📦 View Orders</a>
+    </div>
+    <div class="card">
+      <div class="card-header"><strong>📦 Recent Orders</strong></div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>#</th><th>Gig</th><th>Buyer</th><th>Seller</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for o in recent_orders %}
+          <tr>
+            <td>#{{ o.order_id }}</td>
+            <td style="font-size:.85rem;">{{ o.gig_title[:30] }}</td>
+            <td>{{ o.buyer_name }}</td>
+            <td>{{ o.seller_name }}</td>
+            <td class="text-teal fw6">🪙 {{ o.amount|int }}</td>
+            <td><span class="badge status-{{ o.status }}">{{ o.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,138 @@
+
+{% extends "base.html" %}
+{% block title %}Order #{{ order.order_id }}{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="container" style="max-width:900px;">
+    <div class="breadcrumb">
+      <a href="{{ url_for('dashboard.index') }}">Dashboard</a> ›
+      <a href="{{ url_for('orders.buyer_orders') if is_buyer else url_for('orders.seller_orders') }}">Orders</a> ›
+      Order #{{ order.order_id }}
+    </div>
+
+    <!-- Status Timeline -->
+    <div class="card mt3 mb3">
+      <div class="card-header"><strong>📦 Order #{{ order.order_id }} – {{ order.gig_title }}</strong></div>
+      <div class="card-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;position:relative;padding:1rem 0;">
+          <div style="position:absolute;top:50%;left:0;right:0;height:2px;background:var(--border);z-index:0;"></div>
+          {% for step in ['Pending','InProgress','Delivered','Completed'] %}
+          {% set active = order.status in (['Pending','InProgress','Delivered','Completed'][loop.index0:]) %}
+          <div style="text-align:center;position:relative;z-index:1;">
+            <div style="width:36px;height:36px;border-radius:50%;border:3px solid {% if active %}var(--teal){% else %}var(--border){% endif %};background:{% if active %}var(--teal){% else %}white{% endif %};display:flex;align-items:center;justify-content:center;margin:0 auto .5rem;color:{% if active %}white{% else %}var(--gray-400){% endif %};font-size:.9rem;">
+              {% if step=='Pending' %}📋{% elif step=='InProgress' %}⚙️{% elif step=='Delivered' %}📬{% else %}✅{% endif %}
+            </div>
+            <div style="font-size:.75rem;font-weight:{% if order.status==step %}700{% else %}400{% endif %};color:{% if order.status==step %}var(--teal){% else %}var(--gray-500){% endif %};">{{ step }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="g2" style="align-items:start;">
+      <!-- Details -->
+      <div>
+        <div class="card mb2">
+          <div class="card-header"><strong>📋 Details</strong></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:.75rem;font-size:.9rem;">
+              <div class="fb"><span class="text-muted">Buyer</span><span class="fw6">{{ order.buyer_name }}</span></div>
+              <div class="fb"><span class="text-muted">Seller</span><span class="fw6">{{ order.seller_name }}</span></div>
+              <div class="fb"><span class="text-muted">Amount</span><span class="text-teal fw7">🪙 {{ order.amount|int }}</span></div>
+              <div class="fb"><span class="text-muted">Payment</span><span>{{ order.payment_method|capitalize }}</span></div>
+              <div class="fb"><span class="text-muted">Status</span><span class="badge status-{{ order.status }}">{{ order.status }}</span></div>
+              <div class="fb"><span class="text-muted">Created</span><span>{{ order.created_at.strftime('%b %d, %Y') if order.created_at else '-' }}</span></div>
+              {% if order.delivered_at %}<div class="fb"><span class="text-muted">Delivered</span><span>{{ order.delivered_at.strftime('%b %d, %Y') if order.delivered_at else '-' }}</span></div>{% endif %}
+            </div>
+            {% if order.requirements %}
+            <div class="divider"></div>
+            <div style="font-weight:600;font-size:.85rem;margin-bottom:.5rem;">Requirements:</div>
+            <div style="font-size:.88rem;color:var(--gray-600);background:var(--gray-50);padding:1rem;border-radius:var(--radius-sm);">{{ order.requirements }}</div>
+            {% endif %}
+            {% if order.delivery_link %}
+            <div class="divider"></div>
+            <div style="font-weight:600;font-size:.85rem;margin-bottom:.5rem;">📎 Delivery:</div>
+            <a href="{{ order.delivery_link }}" target="_blank" class="btn btn-ghost btn-sm">View Delivered File →</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div>
+        <!-- Seller: deliver work -->
+        {% if not is_buyer and order.status == 'InProgress' %}
+        <div class="card mb2">
+          <div class="card-header"><strong>✅ Mark as Delivered</strong></div>
+          <div class="card-body">
+            <form method="POST">
+              <input type="hidden" name="action" value="deliver"/>
+              <div class="form-group">
+                <label class="form-label">Google Drive Link<span class="req">*</span></label>
+                <input type="url" name="drive_link" class="form-control" placeholder="https://drive.google.com/…" required/>
+                <div class="form-hint">Upload your work to Google Drive and share the link here.</div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">📬 Submit Delivery</button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Buyer: approve work -->
+        {% if is_buyer and order.status == 'Delivered' %}
+        <div class="card mb2" style="border-color:var(--teal);">
+          <div class="card-header" style="background:var(--teal-glow);"><strong>🎉 Work Delivered!</strong></div>
+          <div class="card-body">
+            <p class="mb3">{{ order.seller_name }} has delivered the work. Please review it before approving.</p>
+            {% if order.delivery_link %}
+            <a href="{{ order.delivery_link }}" target="_blank" class="btn btn-ghost btn-block mb2">📎 View Delivered Work</a>
+            {% endif %}
+            <form method="POST">
+              <input type="hidden" name="action" value="approve"/>
+              <button type="submit" class="btn btn-primary btn-block" onclick="return confirm('Approve this delivery? Coins will be released to the seller.')">✅ Approve & Release Payment</button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Cancel -->
+        {% if ctx.can_cancel() %}
+        <div class="card mb2">
+          <div class="card-header"><strong>❌ Cancel Order</strong></div>
+          <div class="card-body">
+            <p class="mb2" style="font-size:.88rem;">Cancelling will refund your coins if you paid with coins.</p>
+            <form method="POST" onsubmit="return confirm('Cancel this order?')">
+              <input type="hidden" name="action" value="cancel"/>
+              <button type="submit" class="btn btn-danger btn-block btn-sm">Cancel Order</button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Review -->
+        {% if review %}
+        <div class="card">
+          <div class="card-header"><strong>⭐ Your Review</strong></div>
+          <div class="card-body">
+            <div>{% for i in range(review.rating) %}⭐{% endfor %}</div>
+            <p style="font-size:.88rem;margin-top:.5rem;">{{ review.comment }}</p>
+          </div>
+        </div>
+        {% elif is_buyer and order.status == 'Completed' and not review %}
+        <div class="card">
+          <div class="card-header"><strong>⭐ Leave a Review</strong></div>
+          <div class="card-body">
+            <a href="{{ url_for('orders.leave_review',order_id=order.order_id) }}" class="btn btn-primary btn-block">Write Review</a>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="mt2">
+          <a href="{{ url_for('chat.chat_room',order_id=order.order_id) }}" class="btn btn-ghost btn-block">💬 Go to Chat</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

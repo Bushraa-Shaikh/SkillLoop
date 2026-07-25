@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <h1>Find Student <span>Talent</span><br/>From Every Campus</h1>
+      <p>SkillLoop connects students worldwide. Hire talent, exchange skills, earn Campus Coins.</p>
+
+      <form class="hero-search" action="{{ url_for('main.browse') }}" method="GET">
+        <input type="text" name="q" placeholder="Try 'logo design', 'Python tutor', 'video editing'…"/>
+        <button type="submit" class="btn btn-primary">Search</button>
+      </form>
+
+      <div class="hero-stats">
+        <div><div class="hs-num">12K+</div><div class="hs-label">Students</div></div>
+        <div><div class="hs-num">8K+</div><div class="hs-label">Gigs</div></div>
+        <div><div class="hs-num">50+</div><div class="hs-label">Universities</div></div>
+        <div><div class="hs-num">95%</div><div class="hs-label">Satisfaction</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:white;padding:2rem 0;">
+  <div class="container">
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;">
+      {% for icon,name in [('💻','Web Dev'),('📱','Mobile'),('🎨','Design'),('✍️','Writing'),('📊','Data'),('🎬','Video'),('📢','Marketing'),('🎓','Tutoring')] %}
+      <a href="{{ url_for('main.browse', category=name) }}" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:1rem 1.5rem;border-radius:var(--radius-md);border:1.5px solid var(--border);background:white;font-size:.82rem;font-weight:600;color:var(--gray-600);transition:var(--transition);min-width:90px;text-align:center;"
+         onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'"
+         onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--gray-600)'">
+        <span style="font-size:1.8rem;">{{ icon }}</span>{{ name }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div><div class="s-badge">🔥 Popular</div><h2 class="s-title">Featured Gigs</h2></div>
+      <a href="{{ url_for('main.browse') }}" class="btn btn-ghost btn-sm">View All →</a>
+    </div>
+
+    {% if featured %}
+    <div class="g4">
+      {% for gig in featured %}
+      <a href="{{ url_for('main.gig_detail', gig_id=gig.gig_id) }}" class="gig-card">
+        <div class="gig-card-img">
+          {% if gig.thumbnail %}
+            <img src="{{ url_for('static',filename='images/gigs/'+gig.thumbnail) }}" alt=""/>
+          {% else %}
+            🎯
+          {% endif %}
+        </div>
+
+        <div class="gig-card-body">
+          <div class="gig-card-seller">
+            <div class="gig-card-avatar">{{ gig.seller_name[0].upper() }}</div>
+            <span class="gig-card-seller-name">{{ gig.seller_name }}</span>
+          </div>
+          <div class="gig-card-title">{{ gig.title }}</div>
+        </div>
+
+        <div class="gig-card-footer">
+          <div class="gig-card-rating">
+            ⭐ {{ "%.1f"|format(gig.rating or 0) }}
+            <span class="text-muted">({{ gig.total_reviews }})</span>
+          </div>
+          <div class="gig-card-price">🪙 {{ gig.price|int }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">🛍</div>
+      <h3>No gigs yet</h3>
+      <p>Be the first to post!</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section" style="background:white;">
+  <div class="container">
+    <div class="section-header">
+      <div><div class="s-badge">🏆 Elite</div><h2 class="s-title">Top Performers</h2></div>
+    </div>
+
+    {% if top_performers %}
+    <div class="g3">
+      {% for u in top_performers %}
+      <a href="{{ url_for('profile.public_profile',user_id=u.user_id) }}" class="user-card">
+        <div class="user-card-avatar">{{ u.name[0].upper() }}</div>
+        <div class="user-card-name">{{ u.name }}</div>
+        <div class="user-card-uni">{{ u.university or 'Student' }}</div>
+
+        <div style="margin-top:.75rem;display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap;">
+          {% if u.rating %}
+            <span class="badge badge-amber">⭐ {{ "%.1f"|format(u.rating) }}</span>
+          {% endif %}
+          <span class="badge badge-teal">{{ u.total_reviews }} reviews</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">🏆</div>
+      <p>Top performers appear here.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div><div class="s-badge">✨ Fresh</div><h2 class="s-title">New Talent</h2></div>
+    </div>
+
+    {% if new_talent %}
+    <div class="g3">
+      {% for u in new_talent %}
+      <a href="{{ url_for('profile.public_profile',user_id=u.user_id) }}" class="user-card">
+        <div class="user-card-avatar" style="background:linear-gradient(135deg,var(--amber),#f97316);">
+          {{ u.name[0].upper() }}
+        </div>
+        <div class="user-card-name">{{ u.name }}</div>
+        <div class="user-card-uni">{{ u.university or 'Student' }}</div>
+        <div style="margin-top:.75rem;"><span class="badge badge-amber">✨ New Talent</span></div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">✨</div>
+      <p>New talent appears here soon.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section" style="background:white;">
+  <div class="container">
+    <div class="section-header">
+      <div><div class="s-badge">🌟 Rising</div><h2 class="s-title">Rising Stars</h2></div>
+    </div>
+
+    {% if rising_stars %}
+    <div class="g3">
+      {% for u in rising_stars %}
+      <a href="{{ url_for('profile.public_profile',user_id=u.user_id) }}" class="user-card">
+        <div class="user-card-avatar" style="background:linear-gradient(135deg,#8b5cf6,var(--navy));">
+          {{ u.name[0].upper() }}
+        </div>
+        <div class="user-card-name">{{ u.name }}</div>
+        <div class="user-card-uni">{{ u.university or 'Student' }}</div>
+        <div style="margin-top:.75rem;">
+          <span class="badge" style="background:#f3e8ff;color:#7c3aed;">🌟 Rising Star</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">🌟</div>
+      <p>Rising stars appear here.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% if not current_user.is_authenticated %}
+<section style="background:linear-gradient(135deg,var(--navy),var(--navy-3));padding:5rem 2rem;text-align:center;">
+  <div class="container">
+    <h2 style="color:white;margin-bottom:1rem;">Ready to Start?</h2>
+    <p style="color:rgba(255,255,255,.7);max-width:500px;margin:0 auto 2rem;">
+      Join thousands of students earning and learning on SkillLoop.
+    </p>
+
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="{{ url_for('auth.signup') }}" class="btn btn-primary btn-lg">Get Started Free</a>
+      <a href="{{ url_for('main.browse') }}" class="btn btn-lg" style="background:rgba(255,255,255,.1);color:white;border:2px solid rgba(255,255,255,.3);">
+        Browse Gigs
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
