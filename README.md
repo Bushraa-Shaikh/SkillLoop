@@ -50,11 +50,25 @@ SkillLoop follows a **5-Layer MVC Architecture**:
 ![Profile Page](images/profile_page.png)
 
 
+
 ![Gigs](images/Browse_gigs.png)
 
 
+
 ![Wallet](images/Wallet.png)
+
+
+
 ![Dashboard](images/Dashboard.png)
+
+
+
 ![Gigss](images/My_Gigs.png)
+
+
+
 ![Project](images/post_project.png)
+
+
+
 ![login Page](images/login_page.png)
