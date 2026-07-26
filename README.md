@@ -4,7 +4,6 @@
 > A full-stack web application where university students worldwide can offer, 
 > discover, and exchange skills using Campus Coins (virtual currency) or Skill Swap.
 
-![SkillLoop Homepage](screenshots/homepage.png)
 
 ---
 
@@ -37,28 +36,7 @@ project bidding marketplace.
 
 ---
 
-## 🖼 Screenshots
 
-### Homepage
-![Homepage](screenshots/homepage.png)
-
-### Dashboard
-![Dashboard](screenshots/dashboard.png)
-
-### Browse Gigs
-![Browse](screenshots/browse.png)
-
-### Place Order
-![Order](screenshots/place_order.png)
-
-### Real-time Chat
-![Chat](screenshots/chat.png)
-
-### Wallet
-![Wallet](screenshots/wallet.png)
-
-### Admin Panel
-![Admin](screenshots/admin.png)
 
 ---
 
