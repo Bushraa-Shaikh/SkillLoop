@@ -45,4 +45,11 @@ project bidding marketplace.
 SkillLoop follows a **5-Layer MVC Architecture**:
 
 ### Screenshots
+
 ![Profile Page](images/profile page.png)
+![Gigs](images/Browse gigs.png)
+![Wallet](images/Wallet.png)
+![Dashboard](images/Dashboard.png)
+![Gigss](images/My Gigs page.png)
+![Project](images/post project.png)
+![login Page](images/login page.png)
