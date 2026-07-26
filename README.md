@@ -43,3 +43,5 @@ project bidding marketplace.
 ## 🏗 Architecture
 
 SkillLoop follows a **5-Layer MVC Architecture**:
+
+![Profile Page](images/profile page.png)
